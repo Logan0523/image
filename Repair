@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>수리 비용 계산기</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* 상단 섹션 */
+        .intro {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #ffffff;
+            text-align: center;
+            padding-top: 30px;
+            animation: fadeInUp 1.2s ease-out;
+        }
+
+        /* 로고 */
+        .logo img {
+            width: 450px;
+            height: auto;
+            margin-bottom: 10px;
+            animation: fadeIn 1.5s ease-in-out;
+        }
+
+        /* 제목 */
+        h1 {
+            font-size: 48px;
+            color: #2c3e50;
+            margin: 10px 0;
+            opacity: 0;
+            animation: fadeInText 1.5s ease-in-out 0.5s forwards;
+            font-weight: bold;
+        }
+
+        /* 애니메이션 효과 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInText {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 계산기 섹션 */
+        .calculator-section {
+            padding: 40px 20px;
+            background-color: #ffffff;
+            transform: translateY(50px);
+            opacity: 0;
+            transition: all 0.6s ease;
+            border-top: 4px solid #3498db;
+        }
+
+        .calculator-section.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 테이블 스타일 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        th {
+            background-color: #3498db;
+            color: #ffffff;
+            font-size: 16px;
+        }
+
+        input[type="number"] {
+            width: 90%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .total {
+            font-weight: bold;
+            background-color: #ecf0f1;
+            font-size: 18px;
+        }
+
+        .highlight {
+            background-color: #e74c3c;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 상단 로고 및 제목 섹션 -->
+    <div class="intro">
+        <div class="logo">
+            <img src="https://raw.githubusercontent.com/Logan0523/image/1b04a1021e7357ff99aade9f9b3a87712d0ada34/image1.png" alt="LDcar Logo">
+        </div>
+        <h1>수리비 계산기</h1>
+    </div>
+
+    <!-- 계산기 섹션 -->
+    <div class="calculator-section" id="calculatorSection">
+        <label for="multiplier">배율:</label>
+        <input type="number" id="multiplier" value="1.2" step="0.1" oninput="calculateTotal()">
+
+        <table>
+            <tr>
+                <th>부품</th>
+                <th>수리 상태 (1~10)</th>
+                <th>기본 비용</th>
+                <th>총값</th>
+            </tr>
+            <tbody id="calculator"></tbody>
+            <tr>
+                <td colspan="3" class="total">총합</td>
+                <td id="grandTotal" class="highlight">0</td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        const data = [
+            { name: "앞범퍼", costs: [3000, 2700, 2000] },
+            { name: "뒷범퍼", costs: [2700, 2300, 1750] },
+            { name: "센터", costs: [7700, 6700, 5000] },
+            { name: "엔진", costs: [37000, 34000, 25000] },
+            { name: "프레임", costs: [23000, 20000, 15000] },
+        ];
+
+        function calculateTotal() {
+            let grandTotal = 0;
+            const multiplier = parseFloat(document.getElementById('multiplier').value) || 1;
+
+            data.forEach((item, index) => {
+                const status = parseInt(document.getElementById(`status-${index}`).value) || 0;
+
+                let baseCost;
+                if (multiplier > 6) baseCost = item.costs[2];
+                else if (multiplier >= 4) baseCost = item.costs[1];
+                else baseCost = item.costs[0];
+
+                document.getElementById(`baseCost-${index}`).innerText = baseCost.toLocaleString();
+
+                const total = baseCost * multiplier * status;
+                document.getElementById(`total-${index}`).innerText = total.toLocaleString();
+
+                grandTotal += total;
+            });
+
+            document.getElementById('grandTotal').innerText = grandTotal.toLocaleString();
+        }
+
+        function init() {
+            const calculator = document.getElementById('calculator');
+            data.forEach((item, index) => {
+                const row = `<tr>
+                    <td>${item.name}</td>
+                    <td><input type="number" id="status-${index}" min="1" max="10" value="10" oninput="calculateTotal()"></td>
+                    <td id="baseCost-${index}">0</td>
+                    <td id="total-${index}">0</td>
+                </tr>`;
+                calculator.innerHTML += row;
+            });
+
+            calculateTotal();
+        }
+
+        window.onload = () => {
+            init();
+            window.addEventListener('scroll', () => {
+                const calculatorSection = document.getElementById('calculatorSection');
+                if (window.scrollY > 300) {
+                    calculatorSection.classList.add('show');
+                }
+            });
+        };
+    </script>
+</body>
+</html>
+
+
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>수리 비용 계산기</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* 탭 스타일 */
+        .tab-container {
+            display: flex;
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-bottom: 2px solid #ccc;
+        }
+
+        .tab {
+            padding: 14px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            background-color: #f1f1f1;
+            border: none;
+            outline: none;
+            transition: background-color 0.3s;
+        }
+
+        .tab:hover {
+            background-color: #ddd;
+        }
+
+        .tab.active {
+            background-color: #ffffff;
+            color: #3498db;
+            border-bottom: 2px solid #3498db;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-top: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="tab-container">
+    <button class="tab active" onclick="openTab(event, 'general')">일반차량</button>
+    <button class="tab" onclick="openTab(event, 'business')">사업/기관</button>
+    <button class="tab" onclick="openTab(event, 'special')">한정차량</button>
+    <button class="tab" onclick="openTab(event, 'services')">기타서비스</button>
+</div>
+
+<!-- 일반차량 콘텐츠 -->
+<div id="general" class="tab-content active">
+    <h2>일반차량 정보</h2>
+    <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>수리 비용 계산기</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* 차량 정보 테이블 스타일 */
+        .car-info-section {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .car-info-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .car-info-table th, .car-info-table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .car-info-table th {
+            background-color: #2c3e50;
+            color: white;
+            font-weight: bold;
+        }
+
+        .car-info-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .car-info-table tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+
+        .car-info-section h2 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="car-info-section">
+      
+        <table class="car-info-table">
+            <tr>
+                <th>자동차 모델 명칭</th>
+                <th>기본가격 대비 배율</th>
+            </tr>
+            <tr><td>2013 Renault Twizy</td><td>0.50</td></tr>
+            <tr><td>2021 Kia EV6</td><td>1.80</td></tr>
+            <tr><td>2021 Hyundai Ioniq5</td><td>1.80</td></tr>
+            <tr><td>2022 Hyundai Ioniq6</td><td>1.90</td></tr>
+            <tr><td>2021 Genesis GV60</td><td>2.00</td></tr>
+            <tr><td>2022 BMW I4 eDrive 40</td><td>9.00</td></tr>
+            <tr><td>2021 Hyundai Casper 1.0 MPI</td><td>1.20</td></tr>
+            <tr><td>2017 Kia Morning</td><td>1.00</td></tr>
+            <tr><td>2020 Hyundai Sonata 2.0</td><td>2.00</td></tr>
+            <tr><td>2015 Hyundai Sonata 1.7D</td><td>1.80</td></tr>
+            <tr><td>2021 Kia K5 Hybrid</td><td>2.00</td></tr>
+            <tr><td>2021 Renault SM6</td><td>2.20</td></tr>
+            <tr><td>2010 Daewoo Damas</td><td>0.60</td></tr>
+            <tr><td>2001 Daewoo Matiz</td><td>0.60</td></tr>
+            <tr><td>2014 Mercedes-Benz S600 L</td><td>8.50</td></tr>
+            <tr><td>2022 Genesis G90</td><td>5.00</td></tr>
+            <tr><td>2020 Genesis G80</td><td>4.40</td></tr>
+            <tr><td>2019 BMW 330i M Sport</td><td>6.80</td></tr>
+            <tr><td>2017 Ssanyong Chairman</td><td>4.00</td></tr>
+            <tr><td>2022 Hyundai Grandeur</td><td>2.50</td></tr>
+            <tr><td>2020 Kia K7</td><td>2.30</td></tr>
+            <tr><td>2013 Kia K3 Koup Turbo</td><td>0.70</td></tr>
+            <tr><td>2016 Hyundai Avante AD</td><td>2.00</td></tr>
+            <tr><td>2021 Hyundai i20N</td><td>2.00</td></tr>
+            <tr><td>2022 Genesis G70 3.3T AWD</td><td>4.00</td></tr>
+            <tr><td>2023 Hyundai Sonata The Edge</td><td>2.30</td></tr>
+            <tr><td>2023 Hyundai The All New Grandeur 3.5</td><td>3.00</td></tr>
+            <tr><td>2020 Genesis G90L 5.0 HTRAC</td><td>10.00</td></tr>
+            <tr><td>2018 Genesis G70</td><td>4.00</td></tr>
+            <tr><td>2024 Kia K4</td><td>4.00</td></tr>
+            <tr><td>2024 Hyundai The All New Santa Fe 2.5</td><td>4.00</td></tr>
+            <tr><td>2015 Dodge Viper SRT GTS</td><td>8.00</td></tr>
+            <tr><td>2020 Kia Stinger GTS</td><td>4.00</td></tr>
+            <tr><td>2021 Ssangyong Korando</td><td>2.40</td></tr>
+            <tr><td>2022 Kia Sportage</td><td>2.00</td></tr>
+            <tr><td>2021 Kia Carnival 2.2D</td><td>2.40</td></tr>
+            <tr><td>2022 Hyundai Palisade</td><td>2.50</td></tr>
+            <tr><td>2021 Kia Sorento Hybrid</td><td>2.40</td></tr>
+            <tr><td>2021 Hyundai Staria Lounge 3.5</td><td>2.40</td></tr>
+            <tr><td>2021 Genesis GV70 3.5 T-GDI (Sports Package)</td><td>4.20</td></tr>
+            <tr><td>2020 Genesis GV80 3.5 T-GDI</td><td>4.40</td></tr>
+            <tr><td>2023 Ssangyong Torres</td><td>2.70</td></tr>
+            <tr><td>2015 Hyundai Solati</td><td>3.00</td></tr>
+            <tr><td>2024 Kia Sorento Hybrid</td><td>2.60</td></tr>
+            <tr><td>2020 Hyundai Venue</td><td>2.00</td></tr>
+            <tr><td>2018 Hyundai Santa Fe 2.2D</td><td>2.60</td></tr>
+            <tr><td>2020 Hyundai Porter2</td><td>1.80</td></tr>
+            <tr><td>2014 Kia bongo III (Axis)</td><td>1.80</td></tr>
+            <tr><td>2014 Kia bongo III</td><td>1.80</td></tr>
+            <tr><td>2012 Daewoo New BS106</td><td>2.40</td></tr>
+            <tr><td>2021 Hyundai County New Breeze</td><td>2.40</td></tr>
+            <tr><td>2022 Hyundai ElecCity II</td><td>2.40</td></tr>
+            <tr><td>2018 Hyundai New Super Aero City Low</td><td>2.40</td></tr>
+            <tr><td>2002 Hyundai SuperTruck (Axis)</td><td>4.00</td></tr>
+            <tr><td>2006 Hyundai Trago (CarTrailer)</td><td>4.00</td></tr>
+            <tr><td>2013 Hyundai Trago</td><td>4.00</td></tr>
+
+        </table>
+    </div>
+</body>
+</div>
+
+<!-- 사업/기관 콘텐츠 -->
+<div id="business" class="tab-content">
+    <h2>사업/기관 차량 정보</h2>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>수리 비용 계산기</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                background-color: #f4f4f9;
+                color: #333;
+                overflow-x: hidden;
+            }
+    
+            /* 차량 정보 테이블 스타일 */
+            .car-info-section {
+                margin-top: 40px;
+                padding: 20px;
+                background-color: #ffffff;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+    
+            .car-info-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+    
+            .car-info-table th, .car-info-table td {
+                padding: 12px;
+                border: 1px solid #ddd;
+                text-align: left;
+            }
+    
+            .car-info-table th {
+                background-color: #2c3e50;
+                color: white;
+                font-weight: bold;
+            }
+    
+            .car-info-table tr:nth-child(even) {
+                background-color: #f9f9f9;
+            }
+    
+            .car-info-table tr:nth-child(odd) {
+                background-color: #ffffff;
+            }
+    
+            .car-info-section h2 {
+                font-size: 24px;
+                color: #333;
+                margin-bottom: 10px;
+            }
+    
+        </style>
+    </head>
+    <body>
+    
+        <div class="car-info-section">
+           
+            <table class="car-info-table">
+                <tr>
+                    <th>자동차 모델 명칭</th>
+                    <th>기본가격 대비 배율</th>
+                </tr>
+                <tr><td>2022 Hyundai Palisade (Taxi)</td><td>2.50</td></tr>
+                <tr><td>2021 Renault SM6 (Taxi)</td><td>2.20</td></tr>
+                <tr><td>2021 Kia EV6 (Taxi)</td><td>1.80</td></tr>
+                <tr><td>2017 Ssanyong Chairman (Taxi)</td><td>4.00</td></tr>
+                <tr><td>2022 Hyundai Grandeur (Taxi)</td><td>2.50</td></tr>
+                <tr><td>2014 Mercedes-Benz S600 L (Taxi)</td><td>8.50</td></tr>
+                <tr><td>2018 Hyundai Sonata New Rise (Taxi)</td><td>1.80</td></tr>
+                <tr><td>2015 Hyundai Solati (Taxi)</td><td>3.00</td></tr>
+
+                <tr><td>2014 Hyundai Sonata (Police)</td><td>1.60</td></tr>
+                <tr><td>2020 Hyundai Sonata (Police)</td><td>2.00</td></tr>
+                <tr><td>2020 Grand Starex (Police)</td><td>2.40</td></tr>
+                <tr><td>2016 Hyundai Avante AD (Police)</td><td>2.00</td></tr>
+                <tr><td>2018 Genesis G70 (Police)</td><td>4.00</td></tr>
+                <tr><td>2016 Hyundai Tucson (Police)</td><td>2.20</td></tr>
+                <tr><td>2021 Hyundai Santafe (Police)</td><td>2.40</td></tr>
+                <tr><td>2017 Hyundai Sonata (Police)</td><td>1.80</td></tr>
+                <tr><td>2009 Hyundai New Super Aero City (Police)</td><td>2.40</td></tr>
+                <tr><td>2010 Hyundai Universe (Police)</td><td>2.40</td></tr>
+                <tr><td>2005 Lenco Bearcat (SOU)</td><td>4.00</td></tr>
+                <tr><td>2015 Hyundai Sonata 2.4 Sport (Police)</td><td>2.00</td></tr>
+                <tr><td>2016 Hyundai Grand Starex (Police)</td><td>2.00</td></tr>
+                <tr><td>2020 Hyundai Staria (Police Escort)</td><td>2.00</td></tr>
+                <tr><td>2021 Genesis GV60 (Police)</td><td>2.00</td></tr>
+                <tr><td>2021 Hyundai Santafe (Police)</td><td>2.40</td></tr>
+                <tr><td>2021 Kia Carnival 2.2D (Police)</td><td>2.40</td></tr>
+                <tr><td>2022 Genesis G70 3.3T AWD (Police)</td><td>4.00</td></tr>
+                <tr><td>2022 Hyundai Ioniq5 (Police)</td><td>1.80</td></tr>
+
+                <tr><td>2004 Tata Daewoo Novus Fire Tank (Rescue)</td><td>2.80</td></tr>
+                <tr><td>2020 Hyundai Mighty Fire Pump (Rescue)</td><td>2.40</td></tr>
+                <tr><td>2012 Daewoo Novus 119 (Rescue)</td><td>2.40</td></tr>
+                <tr><td>2023 Hyundai Palisade (Rescue)</td><td>2.50</td></tr>
+                <tr><td>2018 Hyundai Starex (Rescue Command #3)</td><td>2.40</td></tr>
+                <tr><td>2018 Hyundai Geand Starex (Rescue Ambulance)</td><td>2.40</td></tr>
+                <tr><td>2018 Hyundai Geand Starex (Ambulance)</td><td>2.40</td></tr>
+                <tr><td>2018 Hyundai County (Rescue)</td><td>2.40</td></tr>
+                <tr><td>2021 Hyundai Staria Lounge 3.5 (Rescue Command)</td><td>2.40</td></tr>
+                <tr><td>2015 Hyundai Solati (Rescue)</td><td>2.60</td></tr>
+                <tr><td>2015 Hyeondai Soradi Fire Leader</td><td>2.60</td></tr>
+                <tr><td>2015 Hyundai Solati (Ambulance)</td><td>4.00</td></tr>
+                <tr><td>2020 Hyundai Pavise (Rescue)</td><td>2.40</td></tr>
+
+                <tr><td>2017 Hyundai Mighty (Tow Truck)</td><td>2.00</td></tr>
+                <tr><td>2023 Ssangyoung Rexton Sports Wrecker (Tow)</td><td>1.50</td></tr>
+                <tr><td>2006 Hyundai Trago (Rescue/TowTruck)</td><td>1.50</td></tr>
+                <tr><td>2021 Hyundai Santafe (FCar)</td><td>2.40</td></tr>
+                <tr><td>2017 Hyundai Mighty Cap (Tow Truck)</td><td>2.00</td></tr>
+                <tr><td>2020 Hyundai Porter2 (FCar)</td><td>1.80</td></tr>
+
+    
+            </table>
+        </div>
+    </body>
+</div>
+
+<!-- 한정차량 콘텐츠 -->
+<div id="special" class="tab-content">
+    <h2>한정차량 정보</h2>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>수리 비용 계산기</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                background-color: #f4f4f9;
+                color: #333;
+                overflow-x: hidden;
+            }
+    
+            /* 차량 정보 테이블 스타일 */
+            .car-info-section {
+                margin-top: 40px;
+                padding: 20px;
+                background-color: #ffffff;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+    
+            .car-info-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+    
+            .car-info-table th, .car-info-table td {
+                padding: 12px;
+                border: 1px solid #ddd;
+                text-align: left;
+            }
+    
+            .car-info-table th {
+                background-color: #2c3e50;
+                color: white;
+                font-weight: bold;
+            }
+    
+            .car-info-table tr:nth-child(even) {
+                background-color: #f9f9f9;
+            }
+    
+            .car-info-table tr:nth-child(odd) {
+                background-color: #ffffff;
+            }
+    
+            .car-info-section h2 {
+                font-size: 24px;
+                color: #333;
+                margin-bottom: 10px;
+            }
+    
+        </style>
+    </head>
+    <body>
+    
+        <div class="car-info-section">
+    
+            <table class="car-info-table">
+                <tr>
+                    <th>자동차 모델 명칭</th>
+                    <th>기본가격 대비 배율</th>
+                </tr>
+                <tr><td>2017 Lamborghini Huracan LP580-2</td><td>13.00</td></tr>
+                <tr><td>2019 Bugatti Chiron Super Sport</td><td>206.00</td></tr>
+                <tr><td>2021 Mercades-Benz AMG GT Black</td><td>10.00</td></tr>
+                <tr><td>2019 McLaren 600LT</td><td>13.00</td></tr>
+                <tr><td>2019 Ferrari F8 Tributo</td><td>13.00</td></tr>
+                <tr><td>2022 Mercedes-Benz S500 W223</td><td>9.50</td></tr>
+                <tr><td>2013 Mercedes C63s AMG Black Series</td><td>8.00</td></tr>
+                <tr><td>2021 Audi RS e-tron GT</td><td>8.00</td></tr>
+                <tr><td>2019 Mercedes-Benz G63</td><td>10.50</td></tr>
+                <tr><td>2019 Rolls-Royce Phantom (SWB)</td><td>60.00</td></tr>
+                <tr><td>2020 Lamborghini Urus</td><td>11.50</td></tr>
+                <tr><td>2021 GMC Hummer EV</td><td>11.00</td></tr>
+                <tr><td>2019 Mercedes Maybach S650 Pullman</td><td>15.00</td></tr>
+                <tr><td>2021 Porsche 911 GT3</td><td>10.50</td></tr>
+                <tr><td>2021 Porsche 911 GT3 Touring</td><td>12.00</td></tr>
+                <tr><td>2015 Ferrari Laferrari</td><td>191.00</td></tr>
+                <tr><td>2020 Bentley Flying Spur</td><td>14.00</td></tr>
+                <tr><td>2021 Hyundai Avante N</td><td>6.00</td></tr>
+                <tr><td>Gokart</td><td>8.00</td></tr>
+                <tr><td>1914 Ford Model T Roadster Pickup</td><td>14.00</td></tr>
+                <tr><td>1994 Mazda Miata</td><td>10.50</td></tr>
+                <tr><td>2023 BMW X7 M60i</td><td>12.00</td></tr>
+                <tr><td>2023 Porsche 911 GT3 RS</td><td>16.00</td></tr>
+                <tr><td>K511 (CivilUse)</td><td>4.00</td></tr>
+                <tr><td>1993 Mercedes-Benz E320 Coupe</td><td>8.00</td></tr>
+                <tr><td>2020 Porsche Taycan Turbo S</td><td>22.00</td></tr>
+                <tr><td>2020 Mercedes-Benz AMG S63</td><td>12.00</td></tr>
+                <tr><td>2019 Rolls-Royce Cullinan Black Badge</td><td>55.00</td></tr>
+                <tr><td>2019 Mercades Sprinter</td><td>9.00</td></tr>
+                <tr><td>2019 Bugatti Divo</td><td>363.00</td></tr>
+                <tr><td>2021 Porsche Taycan Cross Turismo Turbo S</td><td>18.00</td></tr>
+                <tr><td>2008 TATA Daewoo Novus Dump truck</td><td>6.00</td></tr>
+                <tr><td>1984 Toyota Corolla Levin Hatchback</td><td>7.00</td></tr>
+                <tr><td>2012 Hyundai Genesis PRADA (Taxi)</td><td>7.00</td></tr>
+                <tr><td>ShoppingCart</td><td>8.00</td></tr>
+                <tr><td>2023 Mercedes-AMG GLS 63 4MATIC+</td><td>8.00</td></tr>
+                <tr><td>2008 TATA Daewoo Novus 25t Cargo Truck</td><td>7.00</td></tr>
+                <tr><td>2023 Land Rover Defender 110</td><td>14.00</td></tr>
+
+
+    
+            </table>
+        </div>
+    </body>
+</div>
+
+<!-- 기타서비스 콘텐츠 -->
+<div id="services" class="tab-content">
+    <h2>기타서비스 정보</h2>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>수리 비용 계산기</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                background-color: #f4f4f9;
+                color: #333;
+                overflow-x: hidden;
+            }
+    
+            /* 차량 정보 테이블 스타일 */
+            .car-info-section {
+                margin-top: 40px;
+                padding: 20px;
+                background-color: #ffffff;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+    
+            .car-info-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+    
+            .car-info-table th, .car-info-table td {
+                padding: 12px;
+                border: 1px solid #ddd;
+                text-align: left;
+            }
+    
+            .car-info-table th {
+                background-color: #2c3e50;
+                color: white;
+                font-weight: bold;
+            }
+    
+            .car-info-table tr:nth-child(even) {
+                background-color: #f9f9f9;
+            }
+    
+            .car-info-table tr:nth-child(odd) {
+                background-color: #ffffff;
+            }
+    
+            .car-info-section h2 {
+                font-size: 24px;
+                color: #333;
+                margin-bottom: 10px;
+            }
+    
+        </style>
+    </head>
+    <body>
+    
+        <div class="car-info-section">
+    
+            <table class="car-info-table">
+                <tr>
+                    <th>종류</th>
+                    <th>가격</th>
+                </tr>
+                <tr><td>옵션 확인 서비스</td><td>100,000원</td></tr>
+                <tr><td>도색 서비스</td><td>50,000원</td></tr>
+                <tr><td>렉카 견인비</td><td>200,000원</td></tr>
+                <tr><td>긴급주유 1L</td><td>20,000원</td></tr>
+                <tr><td>온라인 견적서</td><td>50,000원</td></tr>
+
+
+    
+            </table>
+        </div>
+    </body>
+</div>
+
+<script>
+    function openTab(event, tabName) {
+        const tabs = document.getElementsByClassName("tab-content");
+        const tabButtons = document.getElementsByClassName("tab");
+
+        // 모든 탭의 내용을 숨김
+        for (let i = 0; i < tabs.length; i++) {
+            tabs[i].classList.remove("active");
+        }
+
+        // 모든 탭 버튼의 active 클래스 제거
+        for (let i = 0; i < tabButtons.length; i++) {
+            tabButtons[i].classList.remove("active");
+        }
+
+        // 선택한 탭 내용 보이기 및 버튼 활성화
+        document.getElementById(tabName).classList.add("active");
+        event.currentTarget.classList.add("active");
+    }
+</script>
+
+</body>
+</html>
